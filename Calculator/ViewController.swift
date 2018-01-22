@@ -2,65 +2,58 @@
 //  ViewController.swift
 //  Calculator
 //
-//  Created by Eduardo Barron on 30/10/15.
-//  Copyright © 2015 Eduardo Barron. All rights reserved.
+//  Created by Eduardo Barrón on 03/08/17.
+//  Copyright © 2017 QuetzalCode. All rights reserved.
 //
 
 import UIKit
 
 class ViewController: UIViewController {
     @IBOutlet weak var display: UILabel!
-    var userIsTyping = false
-    var operandStack = Array<Double>()
-    
-    @IBAction func appendDigit(sender: UIButton) {
+    var isUserTipingSomenthing = false
+    var brain = CalculatorBrain()
+
+    @IBAction func appendDigit(_ sender: UIButton) {
         let digit = sender.currentTitle!
-        if(userIsTyping){
+        if isUserTipingSomenthing{
             display.text = display.text! + digit
         }else{
-            userIsTyping = true
             display.text = digit
+            isUserTipingSomenthing = true
         }
+        //print("digit = \(digit)")
     }
     
     @IBAction func enter() {
-        userIsTyping = false
-        operandStack.append(displayValue)
-        print("Operand Stack = \(operandStack)")
+        isUserTipingSomenthing = false;
+        if let result = brain.pushOperand(operand: displayValue){
+            displayValue = result
+        }else{
+            displayValue = 0
+        }
     }
     
-    var displayValue : Double {
+    var displayValue:Double{
         get{
-            return NSNumberFormatter().numberFromString(display.text!)!.doubleValue
+            return Double(display.text!) ?? 0
         }
         set{
-            display.text = "\(newValue)"
-            userIsTyping = false;
-            
+            display.text! = "\(newValue)"
         }
     }
     
-    @IBAction func operate(sender: UIButton) {
-        let operation = sender.currentTitle!
-        if(userIsTyping){
+    @IBAction func operate(_ sender: UIButton) {
+        if isUserTipingSomenthing{
             enter()
         }
-        
-        switch operation{
-            case "×": performOperation {$0 * $1}
-            case "÷": performOperation {$1 / $0}
-            case "+": performOperation {$0 + $1}
-            case "−": performOperation {$1 - $0}
-            default:break;
+        if let operation = sender.currentTitle{
+            if let result = brain.performOperation(symbol: operation){
+                displayValue = result
+            }else{
+                displayValue = 0
+            }
+
         }
     }
-    
-    func performOperation(operation:(Double, Double) ->Double){
-        if operandStack.count>=2{
-            displayValue = operation(operandStack.removeLast(),operandStack.removeLast())
-            enter()
-        }
-    }
-    
 }
 
